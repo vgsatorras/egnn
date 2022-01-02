@@ -15,7 +15,7 @@ https://arxiv.org/abs/2102.09844
 
 
 ### Example code
-For a simple example of a EGNN implementation [click here](https://github.com/vgsatorras/egnn/blob/b4647f4ec345d2833b799085de0108969be7d80d/models/egnn_clean/egnn_clean.py#L106). Or copy the file `models/egnn_clean/egnn_clean.py` into your working directory and run:
+For a simple example of a EGNN implementation [click here](https://github.com/vgsatorras/egnn/blob/3c079e7267dad0aa6443813ac1a12425c3717558/models/egnn_clean/egnn_clean.py#L106). Or copy the file `models/egnn_clean/egnn_clean.py` into your working directory and run:
 
 ```python
 import egnn_clean as eg
@@ -39,7 +39,7 @@ egnn = eg.EGNN(in_node_nf=n_feat, hidden_nf=32, out_node_nf=1, in_edge_nf=1)
 h, x = egnn(h, x, edges, edge_attr)
 ```
 
-If you are using the EGNN in a new application we recommend checking the EGNN [attributes description](https://github.com/vgsatorras/egnn/blob/b4647f4ec345d2833b799085de0108969be7d80d/models/egnn_clean/egnn_clean.py#L119) that contains some upgrades not included in the paper.
+If you are using the EGNN in a new application we recommend checking the EGNN [attributes description](https://github.com/vgsatorras/egnn/blob/3c079e7267dad0aa6443813ac1a12425c3717558/models/egnn_clean/egnn_clean.py#L119) that contains some upgrades not included in the paper.
 
 
 ### N-body system experiment
