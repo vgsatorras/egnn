@@ -1,11 +1,10 @@
 import torch
 
 def compute_mean_mad(dataloaders, label_property):
-    for key in dataloaders:
-        values = dataloaders[key].dataset.data[label_property]
-        meann = torch.mean(values)
-        ma = torch.abs(values - meann)
-        mad = torch.mean(ma)
+    values = dataloaders['train'].dataset.data[label_property]
+    meann = torch.mean(values)
+    ma = torch.abs(values - meann)
+    mad = torch.mean(ma)
     return meann, mad
 
 edges_dic = {}

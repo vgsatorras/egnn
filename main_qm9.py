@@ -59,8 +59,8 @@ dataloaders, charge_scale = dataset.retrieve_dataloaders(args.batch_size, args.n
 # compute mean and mean absolute deviation
 meann, mad = qm9_utils.compute_mean_mad(dataloaders, args.property)
 
-model = EGNN(in_node_nf=15, in_edge_nf=0, hidden_nf=args.nf, device=device,
-                 n_layers=args.n_layers, coords_weight=1.0, attention=args.attention, node_attr=args.node_attr)
+model = EGNN(in_node_nf=15, in_edge_nf=0, hidden_nf=args.nf, device=device, n_layers=args.n_layers, coords_weight=1.0,
+             attention=args.attention, node_attr=args.node_attr)
 
 print(model)
 
@@ -96,14 +96,12 @@ def train(epoch, loader, partition='train'):
         pred = model(h0=nodes, x=atom_positions, edges=edges, edge_attr=None, node_mask=atom_mask, edge_mask=edge_mask,
                      n_nodes=n_nodes)
 
-
         if partition == 'train':
             loss = loss_l1(pred, (label - meann) / mad)
             loss.backward()
             optimizer.step()
         else:
             loss = loss_l1(mad * pred + meann, label)
-
 
         res['loss'] += loss.item() * batch_size
         res['counter'] += batch_size

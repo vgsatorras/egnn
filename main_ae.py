@@ -77,9 +77,11 @@ if args.model == 'ae':
     model = models.AE(hidden_nf=args.nf, embedding_nf=args.emb_nf, noise_dim=args.noise_dim, act_fn=nn.SiLU(),
                       learnable_dec=1, device=device, attention=args.attention, n_layers=args.n_layers)
 elif args.model == 'ae_rf':
-    model = models.AE_rf(embedding_nf=args.K, nf=args.nf, device=device, n_layers=args.n_layers, reg=args.reg, act_fn=nn.SiLU(), clamp=args.clamp)
+    model = models.AE_rf(embedding_nf=args.K, nf=args.nf, device=device, n_layers=args.n_layers, reg=args.reg,
+                         act_fn=nn.SiLU(), clamp=args.clamp)
 elif args.model == 'ae_egnn':
-    model = models.AE_EGNN(hidden_nf=args.nf, K=args.K, act_fn=nn.SiLU(), device=device, n_layers=args.n_layers, reg=args.reg, clamp=args.clamp)
+    model = models.AE_EGNN(hidden_nf=args.nf, K=args.K, act_fn=nn.SiLU(), device=device, n_layers=args.n_layers,
+                           reg=args.reg, clamp=args.clamp)
 elif args.model == 'baseline':
     model = models.Baseline(device=device)
 else:

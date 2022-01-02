@@ -22,7 +22,6 @@ def graph_edit_distance(adj_pred, adj_gt):
     eye = torch.eye(adj_pred.size(0))
     adj_pred = adj_pred * (1 - eye)
     adj_gt = adj_gt * (1 - eye)
-
     adj_pred = (adj_pred > 0.5).type(torch.float32)
 
     g1 = nx.from_numpy_matrix(adj_pred.detach().numpy(), create_using=nx.Graph)
