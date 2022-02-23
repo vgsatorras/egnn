@@ -6,6 +6,12 @@ import os
 from torch import nn, optim
 import json
 import time
+try:
+    import wandb
+
+    assert hasattr(wandb, '__version__')  # verify package import not local dir
+except (ImportError, AssertionError):
+    wandb = None
 
 parser = argparse.ArgumentParser(description='VAE MNIST Example')
 parser.add_argument('--exp_name', type=str, default='exp_1', metavar='N', help='experiment_name')
@@ -52,12 +58,19 @@ parser.add_argument('--norm_diff', type=eval, default=False, metavar='N',
                     help='normalize_diff')
 parser.add_argument('--tanh', type=eval, default=False, metavar='N',
                     help='use tanh')
+# Weights and Biases Arguments
+parser.add_argument("--use_wandb", default=True, type = bool, help = "Whether to use W&B for metric logging")
+parser.add_argument("--wandb_project", default="egnn", type=str, help="Name of the W&B Project")
+parser.add_argument("--wandb_entity", default=None, type=str, help="entity to use for W&B logging")
 
 time_exp_dic = {'time': 0, 'counter': 0}
 
 
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
+
+if args.use_wandb:
+    wandb.init(project=args.wandb_project, entity=args.wandb_entity, config=args)
 
 
 device = torch.device("cuda" if args.cuda else "cpu")
@@ -132,10 +145,19 @@ def main():
             test_loss = train(model, optimizer, epoch, loader_test, backprop=False)
             results['epochs'].append(epoch)
             results['losess'].append(test_loss)
+
+            if args.use_wandb:
+                wandb.log({"Validation Loss": val_loss})
+                wandb.log({"Test Loss": test_loss})
+
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 best_test_loss = test_loss
                 best_epoch = epoch
+                if args.use_wandb:
+                    wandb.run.summary["best_validation_loss"] = val_loss
+                    wandb.run.summary["best_test_loss"] = test_loss
+                    wandb.run.summary["best_epoch"] = epoch
             print("*** Best Val Loss: %.5f \t Best Test Loss: %.5f \t Best epoch %d" % (best_val_loss, best_test_loss, best_epoch))
 
         json_object = json.dumps(results, indent=4)
@@ -215,6 +237,8 @@ def train(model, optimizer, epoch, loader, backprop=True):
             optimizer.step()
         res['loss'] += loss.item()*batch_size
         res['counter'] += batch_size
+        if args.use_wandb:
+            wandb.log({"Training Loss": loss.item()})
         if batch_idx % args.log_interval == 0 and (args.model == "se3_transformer" or args.model == "tfn"):
             print('===> {} Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(loader.dataset.partition,
                 epoch, batch_idx * batch_size, len(loader.dataset),
