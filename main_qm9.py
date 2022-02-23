@@ -6,6 +6,12 @@ import argparse
 from qm9 import utils as qm9_utils
 import utils
 import json
+try:
+    import wandb
+
+    assert hasattr(wandb, '__version__')  # verify package import not local dir
+except (ImportError, AssertionError):
+    wandb = None
 
 parser = argparse.ArgumentParser(description='QM9 Example')
 parser.add_argument('--exp_name', type=str, default='exp_1', metavar='N',
@@ -45,12 +51,19 @@ parser.add_argument('--node_attr', type=int, default=0, metavar='N',
                     help='node_attr or not')
 parser.add_argument('--weight_decay', type=float, default=1e-16, metavar='N',
                     help='weight decay')
+# Weights and Biases Arguments
+parser.add_argument("--use_wandb", default=True, type = bool, help = "Whether to use W&B for metric logging")
+parser.add_argument("--wandb_project", default="egnn", type=str, help="Name of the W&B Project")
+parser.add_argument("--wandb_entity", default=None, type=str, help="entity to use for W&B logging")
 
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
 device = torch.device("cuda" if args.cuda else "cpu")
 dtype = torch.float32
 print(args)
+
+if args.use_wandb:
+    wandb.init(project=args.wandb_project, entity=args.wandb_entity, config=args)
 
 utils.makedir(args.outf)
 utils.makedir(args.outf + "/" + args.exp_name)
@@ -103,6 +116,9 @@ def train(epoch, loader, partition='train'):
         else:
             loss = loss_l1(mad * pred + meann, label)
 
+        if args.use_wandb:
+            wandb.log({"Training Loss": loss.item()})
+
         res['loss'] += loss.item() * batch_size
         res['counter'] += batch_size
         res['loss_arr'].append(loss.item())
@@ -127,10 +143,18 @@ if __name__ == "__main__":
             res['epochs'].append(epoch)
             res['losess'].append(test_loss)
 
+            if args.use_wandb:
+                wandb.log({"Validation Loss": val_loss})
+                wandb.log({"Test Loss": test_loss})
+
             if val_loss < res['best_val']:
                 res['best_val'] = val_loss
                 res['best_test'] = test_loss
                 res['best_epoch'] = epoch
+                if args.use_wandb:
+                    wandb.run.summary["best_validation_loss"] = val_loss
+                    wandb.run.summary["best_test_loss"] = test_loss
+                    wandb.run.summary["best_epoch"] = epoch
             print("Val loss: %.4f \t test loss: %.4f \t epoch %d" % (val_loss, test_loss, epoch))
             print("Best: val loss: %.4f \t test loss: %.4f \t epoch %d" % (res['best_val'], res['best_test'], res['best_epoch']))
 
